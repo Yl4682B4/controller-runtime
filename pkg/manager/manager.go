@@ -175,6 +175,10 @@ type Options struct {
 	// LeaseDuration time first.
 	LeaderElectionReleaseOnCancel bool
 
+	// OnStartedLeading runs when leader election lease is gained.
+	// Can be used to do global initialization before any controller runs, default to nil.
+	OnStartedLeading func()
+
 	// LeaseDuration is the duration that non-leader candidates will
 	// wait to force acquire leadership. This is measured against time of
 	// last observed ack. Default is 15 seconds.
@@ -414,6 +418,7 @@ func New(config *rest.Config, options Options) (Manager, error) {
 		internalProceduresStop:        make(chan struct{}),
 		leaderElectionStopped:         make(chan struct{}),
 		leaderElectionReleaseOnCancel: options.LeaderElectionReleaseOnCancel,
+		onStartedLeading:              options.OnStartedLeading,
 	}, nil
 }
 

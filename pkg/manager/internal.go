@@ -155,6 +155,10 @@ type controllerManager struct {
 	// before the manager actually returns on stop.
 	gracefulShutdownTimeout time.Duration
 
+	// onStartedLeading is callled when the leader election lease is gained.
+	// It can be overridden for initialization.
+	onStartedLeading func()
+
 	// onStoppedLeading is callled when the leader election lease is lost.
 	// It can be overridden for tests.
 	onStoppedLeading func()
@@ -612,6 +616,9 @@ func (cm *controllerManager) startLeaderElection(ctx context.Context) (err error
 		RetryPeriod:   cm.retryPeriod,
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: func(_ context.Context) {
+				if cm.onStartedLeading != nil {
+					cm.onStartedLeading()
+				}
 				if err := cm.startLeaderElectionRunnables(); err != nil {
 					cm.errChan <- err
 					return
